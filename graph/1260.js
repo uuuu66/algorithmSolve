@@ -1,71 +1,114 @@
 const fs = require("fs");
-const input = fs
-  .readFileSync("DFS와 BFS/input.txt")
-  .toString()
-  .trim()
-  .split("\n");
+const input = fs.readFileSync("./1260.txt").toString().trim().split("\n");
 
 const NMV = input.shift().split(" ");
 const N = Number(NMV.shift());
 const M = Number(NMV.shift());
 const V = Number(NMV.shift());
 
-graph = new Array(N + 1).fill(0, 0, N + 1);
-for (let i = 0; i <= N + 1; i++) {
-  graph[i] = new Array(N + 1).fill(0, 0, N + 1);
-}
+class Queue {
+  constructor() {
+    this.size = 0;
+  }
+  head;
+  tail;
+  size;
+  pop() {
+    if (!this.head) return false;
+    const pop = this.head;
 
+    const nextHead = pop?.getNext();
+
+    if (nextHead) this.head = nextHead;
+    else {
+      this.head = undefined;
+      this.tail = undefined;
+    }
+    this.size -= 1;
+    return pop.val;
+  }
+  push(val) {
+    const newNode = new Node(val);
+    if (!this.head) {
+      this.head = newNode;
+      this.tail = newNode;
+    } else {
+      this.tail.setNext(newNode);
+      this.tail = newNode;
+    }
+    this.size += 1;
+  }
+  length() {
+    return this.size;
+  }
+}
+class Node {
+  constructor(value) {
+    this.val = value;
+    this.next = undefined;
+  }
+  prev;
+  next;
+  val;
+  getNext() {
+    return this.next;
+  }
+  setNext(node) {
+    this.next = node;
+
+    return node;
+  }
+}
+let nodes = [];
+for (let i = 0; i <= N; i++) {
+  nodes[i] = [];
+}
 for (let i = 0; i < M; i++) {
   const xy = input.shift().split(" ");
   const x = Number(xy.shift());
   const y = Number(xy.shift());
 
-  graph[x][y] = 1;
-  graph[y][x] = 1;
+  nodes[x].push(y);
+  nodes[y].push(x);
 }
 
-let BFS = function (node) {
-  let answer = "";
-  let visited = new Array(N + 1).fill(false, 0, N + 1);
-  visited[node] = true;
-
-  let Queue = [];
-  Queue.push(node);
-
-  while (Queue.length > 0) {
-    let cur = Number(Queue.shift());
-    answer += cur + " ";
-    for (let next = 1; next <= N; next++) {
-      if (!visited[next] && graph[cur][next]) {
-        visited[next] = true;
-        Queue.push(next);
+const dfs = (graph) => {
+  const stack = [V];
+  let checked = [];
+  while (stack.length !== 0) {
+    const pop = stack.pop();
+    if (!checked.includes(pop)) {
+      graph[pop].sort((a, b) => b - a);
+      for (let i = 0; i < graph[pop].length; i += 1) {
+        stack.push(graph[pop][i]);
       }
+      checked.push(pop);
     }
   }
-  console.log(answer);
+  console.log(checked.join(" "));
 };
 
-let DFS = function (node) {
-  let answer = "";
-  let visited = new Array(N + 1).fill(false, 0, N + 1);
-  let stack = [];
+const bfs = (graph) => {
+  const queue = new Queue();
 
-  stack.push(node);
+  let checked = [];
+  queue.push(V);
 
-  while (stack.length > 0) {
-    let cur = stack.pop();
+  while (queue.size > 0) {
+    const pop = queue.pop();
 
-    if (!visited[cur]) {
-      visited[cur] = true;
-      answer += cur + " ";
+    if (!checked.includes(pop)) {
+      graph[pop]?.sort((a, b) => a - b);
 
-      for (let next = N; next >= 1; next--) {
-        if (!visited[next] && graph[cur][next]) stack.push(next);
+      for (let i = 0; i < graph[pop].length; i += 1) {
+        queue.push(graph[pop][i]);
       }
+      checked.push(pop);
     }
   }
-  console.log(answer);
-};
 
-DFS(V);
-BFS(V);
+  console.log(checked.join(" "));
+};
+dfs(nodes);
+
+bfs(nodes);
